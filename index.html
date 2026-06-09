@@ -9,13 +9,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sarah">
-<meta name="theme-color" content="#f5ede6">
+<meta name="theme-color" content="#ede5d8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --cream: #faf6f1;
-  --warm-white: #f5ede6;
-  --parchment: #ede4d8;
+  --cream: #ede5d8;
+  --warm-white: #e8dece;
+  --parchment: #e0d4c4;
   --bordeaux: #6b1a2e;
   --cherry: #8f2341;
   --cherry-light: #b84d65;
@@ -630,9 +630,9 @@ canvas { border-radius: 8px; width: 100%; }
   <div class="card cherry">
     <div class="card-label">Pesée du jour</div>
     <div style="font-size:11px;color:var(--text-soft);margin-bottom:10px;font-style:italic">Le matin à jeun, après les toilettes</div>
-    <div class="weight-input-row">
-      <input type="number" class="weight-input" id="weight-input" placeholder="132.0" step="0.1">
-      <button class="weight-save" onclick="saveWeight()">Enregistrer</button>
+    <div style="display:flex;gap:10px;margin-bottom:14px;align-items:stretch">
+      <input type="number" class="weight-input" id="weight-input" placeholder="132.0" step="0.1" style="flex:1;min-width:0">
+      <button class="weight-save" onclick="saveWeight()" style="flex-shrink:0;white-space:nowrap;padding:14px 16px">Enregistrer</button>
     </div>
   </div>
 
@@ -726,9 +726,127 @@ canvas { border-radius: 8px; width: 100%; }
   </div>
 </div>
 
+
+<!-- ===== NUTRITION ===== -->
+<div class="page" id="page-nutrition">
+  <div class="page-header">
+    <div class="page-eyebrow">Alimentation</div>
+    <div class="page-title"><em>Mon journal</em></div>
+    <div class="page-date" id="nutrition-date"></div>
+  </div>
+
+  <!-- BILAN JOUR -->
+  <div class="card bordeaux" id="nutrition-bilan">
+    <div class="card-label">Bilan du jour</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text-soft)">Type de journée :</div>
+      <button onclick="setDayType('sport')" id="btn-sport" style="padding:4px 12px;border-radius:20px;border:1.5px solid var(--cherry);background:var(--cherry);color:white;font-size:10px;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:0.06em">🏋️ Sport</button>
+      <button onclick="setDayType('rest')" id="btn-rest" style="padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);background:none;color:var(--text-soft);font-size:10px;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:0.06em">💤 Repos</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:white;border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border-soft)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--cherry)" id="nut-cal-eaten">0</div>
+        <div style="font-size:9px;color:var(--text-soft);letter-spacing:0.05em">KCAL MANGÉES</div>
+      </div>
+      <div style="background:white;border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border-soft)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold)" id="nut-cal-left">2700</div>
+        <div style="font-size:9px;color:var(--text-soft);letter-spacing:0.05em">KCAL RESTANTES</div>
+      </div>
+    </div>
+    <!-- MACROS BARS -->
+    <div id="macro-bars">
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+          <span style="color:var(--text-soft)">Protéines</span>
+          <span><span id="prot-eaten" style="color:var(--cherry)">0</span><span style="color:var(--text-soft)"> / 150g</span></span>
+        </div>
+        <div class="progress-track"><div class="progress-fill cherry" id="prot-bar" style="width:0%"></div></div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+          <span style="color:var(--text-soft)">Glucides</span>
+          <span><span id="carb-eaten" style="color:var(--gold)">0</span><span style="color:var(--text-soft)" id="carb-target"> / 290g</span></span>
+        </div>
+        <div class="progress-track"><div class="progress-fill gold" id="carb-bar" style="width:0%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+          <span style="color:var(--text-soft)">Lipides</span>
+          <span><span id="fat-eaten" style="color:var(--auburn)">0</span><span style="color:var(--text-soft)"> / 85g</span></span>
+        </div>
+        <div class="progress-track"><div class="progress-fill brown" id="fat-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECHERCHE / SCAN -->
+  <div class="card">
+    <div class="card-label">Ajouter un aliment</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input type="text" id="food-search-input" class="modal-input"
+        placeholder="Rechercher un aliment..."
+        style="flex:1;margin:0"
+        oninput="searchFood(this.value)"
+        onkeydown="if(event.key==='Enter')searchFood(document.getElementById('food-search-input').value)">
+      <button onclick="startScan()" style="padding:10px 14px;background:var(--bordeaux);color:white;border:none;border-radius:8px;font-size:18px;cursor:pointer;flex-shrink:0" title="Scanner un code-barres">📷</button>
+    </div>
+    <div id="food-search-results"></div>
+    <!-- Scanner -->
+    <div id="scanner-container" style="display:none;margin-top:10px">
+      <video id="scanner-video" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover"></video>
+      <button onclick="stopScan()" style="width:100%;margin-top:8px;padding:10px;background:var(--text-soft);color:white;border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;cursor:pointer">Annuler le scan</button>
+    </div>
+  </div>
+
+  <!-- REPAS DU JOUR -->
+  <div id="meals-container"></div>
+
+  <!-- FAVORIS -->
+  <div class="card gold" id="favorites-card">
+    <div class="card-label">Mes favoris</div>
+    <div id="favorites-list"><div class="empty">Aucun favori — étoile ⭐ un aliment pour l'ajouter</div></div>
+  </div>
+
+  <!-- NOTE ÉMOTIONNELLE -->
+  <div class="card cherry">
+    <div class="card-label">Note émotionnelle</div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:8px;font-style:italic">J'ai mangé par...</div>
+    <div class="pill-row">
+      <div class="pill" onclick="togglePill(this)">😋 Faim réelle</div>
+      <div class="pill" onclick="togglePill(this)">😟 Stress</div>
+      <div class="pill" onclick="togglePill(this)">😔 Ennui</div>
+      <div class="pill" onclick="togglePill(this)">😤 Émotions</div>
+      <div class="pill" onclick="togglePill(this)">🌙 Automatique</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT ALIMENT -->
+<div class="modal-overlay" id="modal-add-food">
+  <div class="modal">
+    <div class="modal-title" id="modal-food-title">Ajouter</div>
+    <div style="background:var(--warm-white);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--text-mid)" id="modal-food-info"></div>
+    <div style="font-size:10px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Quantité (g ou ml)</div>
+    <input type="number" id="modal-food-qty" class="modal-input" placeholder="100" value="100" min="1">
+    <div style="font-size:10px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Repas</div>
+    <select id="modal-food-meal" class="modal-select" style="width:100%;margin-bottom:14px">
+      <option value="petit-dej">🌅 Petit déjeuner</option>
+      <option value="dejeuner">☀️ Déjeuner</option>
+      <option value="gouter">🍎 Goûter</option>
+      <option value="diner">🌙 Dîner</option>
+      <option value="extra">⚡ Extra / Crise</option>
+    </select>
+    <div id="modal-food-preview" style="font-size:11px;color:var(--text-soft);margin-bottom:12px;font-style:italic"></div>
+    <button class="btn-primary" onclick="confirmAddFood()">Ajouter au journal</button>
+    <button onclick="toggleFavorite()" id="btn-favorite" style="width:100%;padding:10px;background:none;border:1px solid var(--border);color:var(--text-soft);border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;margin-top:8px">⭐ Ajouter aux favoris</button>
+    <button class="btn-cancel" onclick="closeModal('modal-add-food')">Annuler</button>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav class="nav">
   <button class="nav-btn active" onclick="showPage('home',this)"><span class="icon">🏠</span><span>Accueil</span></button>
+  <button class="nav-btn" onclick="showPage('nutrition',this)"><span class="icon">🍽️</span><span>Nutrition</span></button>
   <button class="nav-btn" onclick="showPage('cal',this)"><span class="icon">📅</span><span>Agenda</span></button>
   <button class="nav-btn" onclick="showPage('food',this)"><span class="icon">🥗</span><span>Repas</span></button>
   <button class="nav-btn" onclick="showPage('health',this)"><span class="icon">🌸</span><span>Santé</span></button>
@@ -851,6 +969,7 @@ function showPage(name, btn) {
   btn.classList.add('active');
   if(name === 'weight') { updateWeightStats(); drawWeightChart(); }
   if(name === 'sport') { loadSession(); }
+  if(name === 'nutrition') { initNutritionPage(); }
   if(name === 'cal') renderCalendar();
   if(name === 'health') renderCycleGrid();
 }
@@ -1364,185 +1483,4 @@ init();
 
 
 <script id="sport-script">
-const PROGRAMME = [{"label": "Semaine du 08/06/2026", "key": "W1", "sessions": [{"session_num": 1, "sheet": "08062026", "date": "08/06/2026", "block": "12", "duration": "1h41", "focus": "BENCH COMP", "exercises": [{"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 40.0, "rest": 120, "rpe": 5.0, "pct": "52%"}, {"reps": 1, "weight": 50.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 1, "weight": 55.0, "rest": 120, "rpe": 5.0, "pct": "71%"}, {"reps": 1, "weight": 60.0, "rest": 180, "rpe": 5.5, "pct": "77%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 8, "weight": 26.0, "rest": 90, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 26.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 8, "weight": 18.0, "rest": 90, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 18.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 43.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 84.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 43.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 84.0, "rest": 90, "rpe": 6.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "09062026", "date": "02/06/2026", "block": "12", "duration": "1h33", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 60.0, "rest": 90, "rpe": 5.0, "pct": "36%"}, {"reps": 4, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 3, "weight": 90.0, "rest": 120, "rpe": 5.0, "pct": "54%"}, {"reps": 3, "weight": 100.0, "rest": 180, "rpe": 5.5, "pct": "60%"}, {"reps": 3, "weight": 100.0, "rest": 180, "rpe": 6.0, "pct": "60%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 11.3, "rest": 10, "rpe": 5.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 9.0, "rest": 90, "rpe": 5.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 11.3, "rest": 120, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 39.0, "rest": 10, "rpe": 5.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 39.0, "rest": 90, "rpe": 5.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 9, "weight": 45.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 9, "weight": 45.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 52.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 52.0, "rest": 120, "rpe": 7.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "11062026", "date": "11/06/2026", "block": "12", "duration": "1h30", "focus": "Accessoires", "exercises": []}, {"session_num": 4, "sheet": "13062026", "date": "13/06/2026", "block": "12", "duration": "1h34", "focus": "SQUAT COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 55.0, "rest": 90, "rpe": 5.0, "pct": "35%"}, {"reps": 3, "weight": 75.0, "rest": 120, "rpe": 5.0, "pct": "48%"}, {"reps": 3, "weight": 95.0, "rest": 120, "rpe": 5.0, "pct": "61%"}, {"reps": 3, "weight": 105.0, "rest": 180, "rpe": 5.0, "pct": "68%"}, {"reps": 3, "weight": 110.0, "rest": 300, "rpe": 6.0, "pct": "71%"}]}]}]}, {"label": "Semaine du 15/06/2026", "key": "W2", "sessions": [{"session_num": 1, "sheet": "15062026", "date": "15/06/2026", "block": "12", "duration": "1h41", "focus": "BENCH COMP", "exercises": [{"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 40.0, "rest": 120, "rpe": 5.0, "pct": "52%"}, {"reps": 1, "weight": 55.0, "rest": 120, "rpe": 5.0, "pct": "71%"}, {"reps": 1, "weight": 60.0, "rest": 120, "rpe": 6.0, "pct": "77%"}, {"reps": 1, "weight": 65.0, "rest": 180, "rpe": 7.0, "pct": "84%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 10, "weight": 29.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 10, "weight": 29.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 8, "weight": 18.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 9, "weight": 18.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 50.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 12, "weight": 90.0, "rest": 90, "rpe": 5.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 50.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 104.0, "rest": 90, "rpe": 7.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "16062026", "date": "16/06/2026", "block": "12", "duration": "1h35", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 95.0, "rest": 120, "rpe": 5.0, "pct": "57%"}, {"reps": 3, "weight": 105.0, "rest": 180, "rpe": 5.5, "pct": "63%"}, {"reps": 3, "weight": 115.0, "rest": 180, "rpe": 6.5, "pct": "69%"}, {"reps": 3, "weight": 125.0, "rest": 180, "rpe": 7.5, "pct": "75%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 14.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 11.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 14.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 11.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 120, "rpe": 8.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "17062026", "date": "17/06/2026", "block": "12", "duration": "1h36", "focus": "Accessoires", "exercises": []}, {"session_num": 4, "sheet": "20062026", "date": "20/06/2026", "block": "12", "duration": "1h36", "focus": "SQUAT COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "45%"}, {"reps": 3, "weight": 85.0, "rest": 120, "rpe": 5.0, "pct": "55%"}, {"reps": 3, "weight": 105.0, "rest": 120, "rpe": 5.5, "pct": "68%"}, {"reps": 3, "weight": 115.0, "rest": 180, "rpe": 6.5, "pct": "74%"}, {"reps": 3, "weight": 120.0, "rest": 300, "rpe": 7.5, "pct": "77%"}]}]}]}, {"label": "Semaine du 22/06/2026", "key": "W3", "sessions": [{"session_num": 1, "sheet": "22062026", "date": "22/06/2026", "block": "12", "duration": "1h56", "focus": "BENCH COMP", "exercises": [{"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 45.0, "rest": 120, "rpe": 5.0, "pct": "58%"}, {"reps": 1, "weight": 55.0, "rest": 180, "rpe": 6.0, "pct": "71%"}, {"reps": 1, "weight": 65.0, "rest": 180, "rpe": 8.0, "pct": "84%"}, {"reps": 1, "weight": 70.0, "rest": 180, "rpe": 9.0, "pct": "90%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 8.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "23062026", "date": "23/06/2026", "block": "12", "duration": "1h42", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 105.0, "rest": 90, "rpe": 6.0, "pct": "63%"}, {"reps": 3, "weight": 115.0, "rest": 120, "rpe": 7.0, "pct": "69%"}, {"reps": 3, "weight": 125.0, "rest": 180, "rpe": 7.5, "pct": "75%"}, {"reps": 3, "weight": 135.0, "rest": 180, "rpe": 8.5, "pct": "81%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 10.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 18.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 120, "rpe": 9.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 120, "rpe": 9.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "24062026", "date": "24/06/2026", "block": "12", "duration": "1h41", "focus": "Accessoires", "exercises": []}, {"session_num": 4, "sheet": "26062026", "date": "26/06/2026", "block": "12", "duration": "1h50", "focus": "SQUAT COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 75.0, "rest": 90, "rpe": 5.0, "pct": "48%"}, {"reps": 3, "weight": 95.0, "rest": 120, "rpe": 6.5, "pct": "61%"}, {"reps": 3, "weight": 115.0, "rest": 300, "rpe": 8.0, "pct": "74%"}, {"reps": 3, "weight": 120.0, "rest": 300, "rpe": 8.5, "pct": "77%"}, {"reps": 3, "weight": 125.0, "rest": 300, "rpe": 9.0, "pct": "81%"}]}]}]}, {"label": "Semaine du 29/06/2026", "key": "W4", "sessions": [{"session_num": 1, "sheet": "29062026", "date": "29/06/2026", "block": "12", "duration": "1h55", "focus": "BENCH COMP", "exercises": [{"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 45.0, "rest": 120, "rpe": 5.0, "pct": "58%"}, {"reps": 1, "weight": 57.5, "rest": 180, "rpe": 6.0, "pct": "74%"}, {"reps": 1, "weight": 67.5, "rest": 180, "rpe": 8.0, "pct": "87%"}, {"reps": 1, "weight": 72.5, "rest": 180, "rpe": 9.0, "pct": "94%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 8.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 10.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "30062026", "date": "30/06/2026", "block": "12", "duration": "1h42", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 110.0, "rest": 90, "rpe": 6.0, "pct": "66%"}, {"reps": 3, "weight": 120.0, "rest": 120, "rpe": 8.0, "pct": "72%"}, {"reps": 3, "weight": 130.0, "rest": 180, "rpe": 8.5, "pct": "78%"}, {"reps": 3, "weight": 140.0, "rest": 180, "rpe": 9.5, "pct": "84%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 10.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 18.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 120, "rpe": 9.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 120, "rpe": 9.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "02072026", "date": "02/07/2026", "block": "12", "duration": "1h41", "focus": "Accessoires", "exercises": []}, {"session_num": 4, "sheet": "03072026", "date": "03/07/2026", "block": "12", "duration": "1h50", "focus": "SQUAT COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 75.0, "rest": 90, "rpe": 5.0, "pct": "48%"}, {"reps": 3, "weight": 100.0, "rest": 120, "rpe": 7.5, "pct": "65%"}, {"reps": 3, "weight": 120.0, "rest": 300, "rpe": 9.0, "pct": "77%"}, {"reps": 3, "weight": 125.0, "rest": 300, "rpe": 9.5, "pct": "81%"}, {"reps": 3, "weight": 130.0, "rest": 300, "rpe": 10.0, "pct": "84%"}]}]}]}];
-
-let sportDrafts = JSON.parse(localStorage.getItem('sport_drafts_v2') || '{}');
-
-function initSportPage() {
-  const weekSel = document.getElementById('week-select');
-  weekSel.innerHTML = '';
-  PROGRAMME.forEach((w, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = w.label;
-    weekSel.appendChild(opt);
-  });
-  onWeekChange();
-}
-
-function onWeekChange() {
-  const wi = parseInt(document.getElementById('week-select').value);
-  const week = PROGRAMME[wi];
-  const sessSel = document.getElementById('session-select');
-  const prevSi = parseInt(sessSel.value) || 0;
-  sessSel.innerHTML = '';
-  (week?.sessions || []).forEach((s, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `Séance ${s.session_num} — ${s.date}`;
-    sessSel.appendChild(opt);
-  });
-  const maxSi = (week?.sessions?.length || 1) - 1;
-  sessSel.value = Math.min(prevSi, maxSi);
-  loadSession();
-}
-
-function loadSession() {
-  const wi = parseInt(document.getElementById('week-select').value);
-  const si = parseInt(document.getElementById('session-select').value);
-  const sess = PROGRAMME[wi]?.sessions[si];
-  if(!sess) return;
-  const draftKey = `${wi}_${si}`;
-  const draft = sportDrafts[draftKey] || {};
-
-  document.getElementById('session-meta').innerHTML = `
-    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px">
-      <span>📅 ${sess.date}</span>
-      ${sess.duration ? `<span>⏱ ${sess.duration}</span>` : ''}
-      ${sess.block ? `<span>Block ${sess.block}</span>` : ''}
-    </div>
-    ${sess.focus ? `<div style="color:var(--bordeaux);font-weight:500;margin-top:6px;font-size:13px">${sess.focus}</div>` : ''}
-  `;
-
-  const container = document.getElementById('exercises-container');
-  container.innerHTML = '';
-  const colors = ['cherry','auburn','bordeaux','gold','brown'];
-
-  if(!sess.exercises || sess.exercises.length === 0) {
-    container.innerHTML = '<div class="card"><div class="empty" style="padding:20px 0">Aucun exercice trouvé pour cette séance.<br>Vérifie que le fichier programme.xlsm est à jour.</div></div>';
-    document.getElementById('notes-card').style.display = 'block';
-    document.getElementById('summary-card').style.display = 'block';
-    updateSummary(wi, si);
-    return;
-  }
-
-  sess.exercises.forEach((ex, exIdx) => {
-    const card = document.createElement('div');
-    card.className = `card ${colors[exIdx % colors.length]}`;
-    card.style.marginBottom = '12px';
-
-    let html = `<div class="card-label">${ex.name}${ex.variation ? ' <span style="color:var(--gold);font-weight:400">· ' + ex.variation + '</span>' : ''}</div>`;
-
-    ex.sets.forEach((set, setIdx) => {
-      const dk = `${exIdx}_${setIdx}`;
-      const dv = draft[dk] || {};
-      const repsReal = dv.reps !== undefined ? dv.reps : '';
-      const weightReal = dv.weight !== undefined ? dv.weight : '';
-      const rpeReal = dv.rpe !== undefined ? dv.rpe : '';
-      const weightStr = set.weight > 0 ? `${set.weight} kg` : '—';
-      const pctStr = set.pct ? ` <span style="font-size:9px;color:var(--text-soft)">${set.pct}</span>` : '';
-      const repsOpts = Array.from({length:21},(_,i)=>`<option value="${i}" ${String(repsReal)===String(i)?'selected':''}>${i}</option>`).join('');
-      const rpeOpts = [5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10].map(v=>`<option value="${v}" ${String(rpeReal)===String(v)?'selected':''}>${v}</option>`).join('');
-
-      html += `
-      <div style="border-top:1px solid var(--border-soft);padding:10px 0">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px;color:var(--text-soft)">
-          <span style="font-weight:500;letter-spacing:0.05em">SÉRIE ${setIdx+1}</span>
-          <span>Récup ${set.rest > 0 ? set.rest + 's' : '—'} · RPE cible <strong style="color:var(--bordeaux)">${set.rpe || '—'}</strong>${pctStr}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-          <div>
-            <div style="font-size:9px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Reps cible</div>
-            <div style="font-size:15px;font-weight:500">${set.reps || '—'}</div>
-          </div>
-          <div>
-            <div style="font-size:9px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Charge cible</div>
-            <div style="font-size:15px;font-weight:500">${weightStr}</div>
-          </div>
-          <div></div>
-          <div>
-            <div style="font-size:9px;color:var(--cherry);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Reps réel</div>
-            <select onchange="saveDraft(${wi},${si},'${dk}','reps',this.value)"
-              style="width:100%;background:var(--warm-white);border:1px solid rgba(143,35,65,0.3);border-radius:6px;padding:6px 4px;font-family:'Jost',sans-serif;font-size:13px;color:var(--cherry);outline:none">
-              <option value="">—</option>${repsOpts}
-            </select>
-          </div>
-          <div>
-            <div style="font-size:9px;color:var(--cherry);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Charge réelle</div>
-            <input type="number" step="0.5" min="0"
-              placeholder="${set.weight > 0 ? set.weight : '?'}"
-              value="${weightReal}"
-              onchange="saveDraft(${wi},${si},'${dk}','weight',this.value)"
-              style="width:100%;background:var(--warm-white);border:1px solid rgba(143,35,65,0.3);border-radius:6px;padding:6px 8px;font-family:'Jost',sans-serif;font-size:13px;color:var(--cherry);outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div style="font-size:9px;color:var(--cherry);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">RPE réel</div>
-            <select onchange="saveDraft(${wi},${si},'${dk}','rpe',this.value)"
-              style="width:100%;background:var(--warm-white);border:1px solid rgba(143,35,65,0.3);border-radius:6px;padding:6px 4px;font-family:'Jost',sans-serif;font-size:13px;color:var(--cherry);outline:none">
-              <option value="">—</option>${rpeOpts}
-            </select>
-          </div>
-        </div>
-      </div>`;
-    });
-
-    card.innerHTML = html;
-    container.appendChild(card);
-  });
-
-  document.getElementById('notes-card').style.display = 'block';
-  document.getElementById('session-notes').value = draft.notes || '';
-  document.getElementById('summary-card').style.display = 'block';
-  updateSummary(wi, si);
-}
-
-function saveDraft(wi, si, field, type, value) {
-  const key = `${wi}_${si}`;
-  if(!sportDrafts[key]) sportDrafts[key] = {};
-  if(!sportDrafts[key][field]) sportDrafts[key][field] = {};
-  sportDrafts[key][field][type] = value;
-  localStorage.setItem('sport_drafts_v2', JSON.stringify(sportDrafts));
-  updateSummary(wi, si);
-}
-
-function saveNotes() {
-  const wi = parseInt(document.getElementById('week-select').value);
-  const si = parseInt(document.getElementById('session-select').value);
-  const key = `${wi}_${si}`;
-  if(!sportDrafts[key]) sportDrafts[key] = {};
-  sportDrafts[key].notes = document.getElementById('session-notes').value;
-  localStorage.setItem('sport_drafts_v2', JSON.stringify(sportDrafts));
-}
-
-function updateSummary(wi, si) {
-  const sess = PROGRAMME[wi]?.sessions[si];
-  if(!sess) return;
-  const key = `${wi}_${si}`;
-  const draft = sportDrafts[key] || {};
-  let lines = [];
-  lines.push(`SÉANCE ${sess.session_num} — ${sess.date}`);
-  lines.push(`Block ${sess.block} | ${sess.duration}`);
-  lines.push(`Focus : ${sess.focus}`);
-  lines.push('─────────────────────');
-  sess.exercises.forEach((ex, exIdx) => {
-    lines.push(`\n${ex.name}${ex.variation ? ' (' + ex.variation + ')' : ''}`);
-    ex.sets.forEach((set, setIdx) => {
-      const dk = `${exIdx}_${setIdx}`;
-      const dv = draft[dk] || {};
-      const repsR = dv.reps !== undefined && dv.reps !== '' ? dv.reps : '?';
-      const weightR = dv.weight !== undefined && dv.weight !== '' ? dv.weight + 'kg' : (set.weight > 0 ? set.weight + 'kg' : '?');
-      const rpeR = dv.rpe !== undefined && dv.rpe !== '' ? dv.rpe : '?';
-      lines.push(`  Série ${setIdx+1} : ${repsR}r × ${weightR} — RPE ${rpeR} (cible ${set.rpe})`);
-    });
-  });
-  if(draft.notes) lines.push('\nCommentaires : ' + draft.notes);
-  document.getElementById('session-summary').textContent = lines.join('\n');
-}
-
-function copySummary() {
-  const text = document.getElementById('session-summary').textContent;
-  navigator.clipboard.writeText(text).then(() => showToast('📋 Copié pour Slack !'));
-}
-</script>
-</body>
-</html>
+const PROGRAMME = [{"label": "Semaine du 08/06/2026", "key": "W1", "sessions": [{"session_num": 1, "sheet": "08062026", "date": "08/06/2026", "block": "12", "duration": "1h41", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "45%"}, {"reps": 4, "weight": 85.0, "rest": 120, "rpe": 5.0, "pct": "55%"}, {"reps": 3, "weight": 95.0, "rest": 180, "rpe": 5.0, "pct": "61%"}, {"reps": 2, "weight": 105.0, "rest": 180, "rpe": 5.5, "pct": "68%"}, {"reps": 2, "weight": 115.0, "rest": 180, "rpe": 5.5, "pct": "74%"}, {"reps": 2, "weight": 115.0, "rest": 180, "rpe": 5.5, "pct": "74%"}, {"reps": 2, "weight": 90.0, "rest": 180, "rpe": 5.0, "pct": "58%"}, {"reps": 2, "weight": 90.0, "rest": 300, "rpe": 5.5, "pct": "58%"}]}, {"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 40.0, "rest": 120, "rpe": 5.0, "pct": "52%"}, {"reps": 1, "weight": 50.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 1, "weight": 55.0, "rest": 120, "rpe": 5.0, "pct": "71%"}, {"reps": 1, "weight": 60.0, "rest": 180, "rpe": 5.5, "pct": "77%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 8, "weight": 26.0, "rest": 90, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 26.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 8, "weight": 18.0, "rest": 90, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 18.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 43.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 84.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 43.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 84.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "Tirage poulie haute barre prise pronation", "variation": "", "sets": [{"reps": 10, "weight": 45.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 45.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 8, "weight": 52.0, "rest": 1, "rpe": 7.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "09062026", "date": "09/06/2026", "block": "12", "duration": "1h33", "focus": "BENCH COMP · DEADLIFT COMP", "exercises": [{"name": "BENCH COMP", "variation": "", "sets": [{"reps": 3, "weight": 40.0, "rest": 90, "rpe": 5.0, "pct": "52%"}, {"reps": 3, "weight": 50.0, "rest": 90, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 55.0, "rest": 180, "rpe": 5.0, "pct": "71%"}, {"reps": 3, "weight": 60.0, "rest": 180, "rpe": 5.5, "pct": "77%"}, {"reps": 3, "weight": 60.0, "rest": 180, "rpe": 5.5, "pct": "77%"}, {"reps": 3, "weight": 60.0, "rest": 300, "rpe": 6.0, "pct": "77%"}]}, {"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 60.0, "rest": 90, "rpe": 5.0, "pct": "36%"}, {"reps": 4, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 3, "weight": 90.0, "rest": 120, "rpe": 5.0, "pct": "54%"}, {"reps": 3, "weight": 100.0, "rest": 180, "rpe": 5.5, "pct": "60%"}, {"reps": 3, "weight": 100.0, "rest": 180, "rpe": 6.0, "pct": "60%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 11.3, "rest": 10, "rpe": 5.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 9.0, "rest": 90, "rpe": 5.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 11.3, "rest": 120, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 39.0, "rest": 10, "rpe": 5.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 39.0, "rest": 90, "rpe": 5.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 9, "weight": 45.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 9, "weight": 45.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 52.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 52.0, "rest": 120, "rpe": 7.0, "pct": ""}]}, {"name": "Tirage poulie basse - triangle", "variation": "", "sets": [{"reps": 10, "weight": 39.0, "rest": 90, "rpe": 5.0, "pct": ""}, {"reps": 10, "weight": 41.3, "rest": 90, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 45.0, "rest": 1, "rpe": 7.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "11062026", "date": "11/06/2026", "block": "12", "duration": "1h30", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 85.0, "rest": 120, "rpe": 5.0, "pct": "51%"}, {"reps": 3, "weight": 105.0, "rest": 180, "rpe": 5.0, "pct": "63%"}, {"reps": 2, "weight": 120.0, "rest": 180, "rpe": 5.5, "pct": "72%"}, {"reps": 1, "weight": 130.0, "rest": 180, "rpe": 6.0, "pct": "78%"}, {"reps": 3, "weight": 120.0, "rest": 180, "rpe": 5.5, "pct": "72%"}, {"reps": 3, "weight": 90.0, "rest": 300, "rpe": 5.0, "pct": "54%"}]}, {"name": "Dc incliné haltère ", "variation": "", "sets": [{"reps": 10, "weight": 14.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 10, "weight": 14.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 8, "weight": 18.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 8, "weight": 18.0, "rest": 120, "rpe": 7.0, "pct": ""}]}, {"name": "Rowing haltère", "variation": "", "sets": [{"reps": 10, "weight": 20.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 10, "weight": 22.0, "rest": 120, "rpe": 6.5, "pct": ""}, {"reps": 10, "weight": 26.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "Elévations latérales haltère", "variation": "", "sets": [{"reps": 10, "weight": 6.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 8, "weight": 6.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 6.0, "rest": 1, "rpe": 7.0, "pct": ""}]}]}, {"session_num": 4, "sheet": "13062026", "date": "13/06/2026", "block": "12", "duration": "1h34", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 55.0, "rest": 90, "rpe": 5.0, "pct": "35%"}, {"reps": 3, "weight": 75.0, "rest": 120, "rpe": 5.0, "pct": "48%"}, {"reps": 3, "weight": 95.0, "rest": 120, "rpe": 5.0, "pct": "61%"}, {"reps": 3, "weight": 105.0, "rest": 180, "rpe": 5.0, "pct": "68%"}, {"reps": 3, "weight": 110.0, "rest": 300, "rpe": 6.0, "pct": "71%"}]}, {"name": "BENCH COMP", "variation": "", "sets": [{"reps": 5, "weight": 30.0, "rest": 90, "rpe": 5.0, "pct": "39%"}, {"reps": 4, "weight": 40.0, "rest": 120, "rpe": 5.0, "pct": "52%"}, {"reps": 3, "weight": 50.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 2, "weight": 55.0, "rest": 180, "rpe": 5.0, "pct": "71%"}, {"reps": 1, "weight": 0.0, "rest": 180, "rpe": 6.5, "pct": ""}, {"reps": 3, "weight": -5.0, "rest": 300, "rpe": 7.0, "pct": ""}]}, {"name": "BSS HALTERE", "variation": "", "sets": [{"reps": 10, "weight": 8.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 10, "weight": 8.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 8.0, "rest": 120, "rpe": 7.0, "pct": ""}]}]}]}, {"label": "Semaine du 15/06/2026", "key": "W2", "sessions": [{"session_num": 1, "sheet": "15062026", "date": "15/06/2026", "block": "12", "duration": "1h41", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "45%"}, {"reps": 4, "weight": 100.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 110.0, "rest": 180, "rpe": 6.0, "pct": "71%"}, {"reps": 2, "weight": 120.0, "rest": 180, "rpe": 6.5, "pct": "77%"}, {"reps": 2, "weight": 125.0, "rest": 180, "rpe": 7.5, "pct": "81%"}, {"reps": 2, "weight": 130.0, "rest": 180, "rpe": 8.0, "pct": "84%"}, {"reps": 2, "weight": 105.0, "rest": 180, "rpe": 5.0, "pct": "68%"}, {"reps": 2, "weight": 105.0, "rest": 300, "rpe": 6.0, "pct": "68%"}]}, {"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 40.0, "rest": 120, "rpe": 5.0, "pct": "52%"}, {"reps": 1, "weight": 55.0, "rest": 120, "rpe": 5.0, "pct": "71%"}, {"reps": 1, "weight": 60.0, "rest": 120, "rpe": 6.0, "pct": "77%"}, {"reps": 1, "weight": 65.0, "rest": 180, "rpe": 7.0, "pct": "84%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 10, "weight": 29.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 10, "weight": 29.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 8, "weight": 18.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 9, "weight": 18.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 50.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 12, "weight": 90.0, "rest": 90, "rpe": 5.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 50.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 104.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Tirage poulie haute barre prise pronation", "variation": "", "sets": [{"reps": 10, "weight": 52.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 8, "weight": 59.0, "rest": 120, "rpe": 8.0, "pct": ""}, {"reps": 8, "weight": 59.0, "rest": 1, "rpe": 8.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "16062026", "date": "16/06/2026", "block": "12", "duration": "1h35", "focus": "BENCH COMP · DEADLIFT COMP", "exercises": [{"name": "BENCH COMP", "variation": "", "sets": [{"reps": 3, "weight": 40.0, "rest": 90, "rpe": 5.0, "pct": "52%"}, {"reps": 3, "weight": 50.0, "rest": 90, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 60.0, "rest": 180, "rpe": 6.0, "pct": "77%"}, {"reps": 3, "weight": 65.0, "rest": 180, "rpe": 6.5, "pct": "84%"}, {"reps": 3, "weight": 65.0, "rest": 180, "rpe": 7.0, "pct": "84%"}, {"reps": 3, "weight": 65.0, "rest": 300, "rpe": 7.5, "pct": "84%"}]}, {"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 95.0, "rest": 120, "rpe": 5.0, "pct": "57%"}, {"reps": 3, "weight": 105.0, "rest": 180, "rpe": 5.5, "pct": "63%"}, {"reps": 3, "weight": 115.0, "rest": 180, "rpe": 6.5, "pct": "69%"}, {"reps": 3, "weight": 125.0, "rest": 180, "rpe": 7.5, "pct": "75%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 14.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 11.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 14.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 8, "weight": 11.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 6.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 6.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "Tirage poulie basse - triangle", "variation": "", "sets": [{"reps": 8, "weight": 45.0, "rest": 90, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 45.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 6, "weight": 52.0, "rest": 1, "rpe": 8.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "17062026", "date": "17/06/2026", "block": "12", "duration": "1h36", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 100.0, "rest": 120, "rpe": 5.0, "pct": "60%"}, {"reps": 3, "weight": 120.0, "rest": 180, "rpe": 5.0, "pct": "72%"}, {"reps": 2, "weight": 130.0, "rest": 180, "rpe": 6.5, "pct": "78%"}, {"reps": 1, "weight": 140.0, "rest": 300, "rpe": 7.5, "pct": "84%"}, {"reps": 3, "weight": 130.0, "rest": 300, "rpe": 7.0, "pct": "78%"}, {"reps": 3, "weight": 100.0, "rest": 300, "rpe": 5.0, "pct": "60%"}]}, {"name": "Dc incliné haltère ", "variation": "", "sets": [{"reps": 8, "weight": 14.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 8, "weight": 16.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 6, "weight": 20.0, "rest": 120, "rpe": 8.0, "pct": ""}, {"reps": 6, "weight": 20.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "Rowing haltère", "variation": "", "sets": [{"reps": 10, "weight": 20.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 10, "weight": 20.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 26.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "Elévations latérales haltère", "variation": "", "sets": [{"reps": 10, "weight": 6.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 6.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 7, "weight": 8.0, "rest": 1, "rpe": 9.0, "pct": ""}]}]}, {"session_num": 4, "sheet": "20062026", "date": "20/06/2026", "block": "12", "duration": "1h36", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "45%"}, {"reps": 3, "weight": 85.0, "rest": 120, "rpe": 5.0, "pct": "55%"}, {"reps": 3, "weight": 105.0, "rest": 120, "rpe": 5.5, "pct": "68%"}, {"reps": 3, "weight": 115.0, "rest": 180, "rpe": 6.5, "pct": "74%"}, {"reps": 3, "weight": 120.0, "rest": 300, "rpe": 7.5, "pct": "77%"}]}, {"name": "BENCH COMP", "variation": "", "sets": [{"reps": 5, "weight": 40.0, "rest": 90, "rpe": 5.0, "pct": "52%"}, {"reps": 4, "weight": 50.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 60.0, "rest": 120, "rpe": 6.0, "pct": "77%"}, {"reps": 2, "weight": 65.0, "rest": 300, "rpe": 7.0, "pct": "84%"}, {"reps": 1, "weight": 0.0, "rest": 180, "rpe": 7.5, "pct": ""}, {"reps": 3, "weight": -5.0, "rest": 300, "rpe": 7.5, "pct": ""}]}, {"name": "BSS HALTERE", "variation": "", "sets": [{"reps": 10, "weight": 10.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 10.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 10, "weight": 10.0, "rest": 120, "rpe": 8.0, "pct": ""}]}]}]}, {"label": "Semaine du 22/06/2026", "key": "W3", "sessions": [{"session_num": 1, "sheet": "22062026", "date": "22/06/2026", "block": "12", "duration": "1h56", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "45%"}, {"reps": 4, "weight": 100.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 115.0, "rest": 180, "rpe": 6.5, "pct": "74%"}, {"reps": 2, "weight": 125.0, "rest": 300, "rpe": 7.5, "pct": "81%"}, {"reps": 2, "weight": 135.0, "rest": 300, "rpe": 8.5, "pct": "87%"}, {"reps": 2, "weight": 140.0, "rest": 300, "rpe": 9.0, "pct": "90%"}, {"reps": 2, "weight": 120.0, "rest": 300, "rpe": 5.0, "pct": "77%"}, {"reps": 2, "weight": 120.0, "rest": 300, "rpe": 7.5, "pct": "77%"}]}, {"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 45.0, "rest": 120, "rpe": 5.0, "pct": "58%"}, {"reps": 1, "weight": 55.0, "rest": 180, "rpe": 6.0, "pct": "71%"}, {"reps": 1, "weight": 65.0, "rest": 180, "rpe": 8.0, "pct": "84%"}, {"reps": 1, "weight": 70.0, "rest": 180, "rpe": 9.0, "pct": "90%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Adducteurs assis à la machine (intérieur cuisses)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Abducteurs assis à la machine (fessiers)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "Tirage poulie haute barre prise pronation", "variation": "", "sets": [{"reps": 10, "weight": 45.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 10, "weight": 52.0, "rest": 120, "rpe": 8.0, "pct": ""}, {"reps": 8, "weight": 59.0, "rest": 1, "rpe": 9.0, "pct": ""}]}]}, {"session_num": 2, "sheet": "23062026", "date": "23/06/2026", "block": "12", "duration": "1h42", "focus": "BENCH COMP · DEADLIFT COMP", "exercises": [{"name": "BENCH COMP", "variation": "", "sets": [{"reps": 3, "weight": 40.0, "rest": 90, "rpe": 5.0, "pct": "52%"}, {"reps": 3, "weight": 50.0, "rest": 90, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 60.0, "rest": 300, "rpe": 6.0, "pct": "77%"}, {"reps": 3, "weight": 65.0, "rest": 300, "rpe": 7.0, "pct": "84%"}, {"reps": 3, "weight": 67.5, "rest": 300, "rpe": 8.0, "pct": "87%"}, {"reps": 3, "weight": 70.0, "rest": 300, "rpe": 9.0, "pct": "90%"}]}, {"name": "DEADLIFT COMP", "variation": "Halte", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 105.0, "rest": 90, "rpe": 6.0, "pct": "63%"}, {"reps": 3, "weight": 115.0, "rest": 120, "rpe": 7.0, "pct": "69%"}, {"reps": 3, "weight": 125.0, "rest": 180, "rpe": 7.5, "pct": "75%"}, {"reps": 3, "weight": 135.0, "rest": 180, "rpe": 8.5, "pct": "81%"}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 10.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "Extension triceps poulie unilatéral", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 18.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Curl poulie unilatérale", "variation": "SUPER7", "sets": [{"reps": 10, "weight": 14.0, "rest": 120, "rpe": 9.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 7.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 8.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 8.0, "pct": ""}]}, {"name": "BUTTERFLY", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 10, "rpe": 9.0, "pct": ""}]}, {"name": "Deltoïd machine (reverse butterfly)", "variation": "SUPER7", "sets": [{"reps": 0, "weight": 0.0, "rest": 120, "rpe": 9.0, "pct": ""}]}, {"name": "Tirage poulie basse - triangle", "variation": "", "sets": [{"reps": 10, "weight": 45.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 10, "weight": 52.0, "rest": 90, "rpe": 8.0, "pct": ""}, {"reps": 6, "weight": 59.0, "rest": 1, "rpe": 9.0, "pct": ""}]}]}, {"session_num": 3, "sheet": "24062026", "date": "24/06/2026", "block": "12", "duration": "1h41", "focus": "DEADLIFT COMP", "exercises": [{"name": "DEADLIFT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "42%"}, {"reps": 4, "weight": 105.0, "rest": 120, "rpe": 5.0, "pct": "63%"}, {"reps": 3, "weight": 125.0, "rest": 300, "rpe": 6.5, "pct": "75%"}, {"reps": 2, "weight": 140.0, "rest": 300, "rpe": 7.5, "pct": "84%"}, {"reps": 1, "weight": 150.0, "rest": 300, "rpe": 8.5, "pct": "90%"}, {"reps": 3, "weight": 140.0, "rest": 300, "rpe": 8.0, "pct": "84%"}, {"reps": 3, "weight": 110.0, "rest": 300, "rpe": 5.0, "pct": "66%"}]}, {"name": "Dc incliné haltère ", "variation": "", "sets": [{"reps": 10, "weight": 14.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 8, "weight": 16.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 8, "weight": 18.0, "rest": 120, "rpe": 8.0, "pct": ""}, {"reps": 6, "weight": 20.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "Rowing haltère", "variation": "", "sets": [{"reps": 10, "weight": 20.0, "rest": 120, "rpe": 6.0, "pct": ""}, {"reps": 8, "weight": 24.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 6, "weight": 28.0, "rest": 120, "rpe": 8.0, "pct": ""}]}, {"name": "Elévations latérales haltère", "variation": "", "sets": [{"reps": 12, "weight": 4.0, "rest": 120, "rpe": 5.0, "pct": ""}, {"reps": 10, "weight": 6.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 8, "weight": 8.0, "rest": 1, "rpe": 8.0, "pct": ""}]}]}, {"session_num": 4, "sheet": "26062026", "date": "26/06/2026", "block": "12", "duration": "1h50", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 3, "weight": 75.0, "rest": 90, "rpe": 5.0, "pct": "48%"}, {"reps": 3, "weight": 95.0, "rest": 120, "rpe": 6.5, "pct": "61%"}, {"reps": 3, "weight": 115.0, "rest": 300, "rpe": 8.0, "pct": "74%"}, {"reps": 3, "weight": 120.0, "rest": 300, "rpe": 8.5, "pct": "77%"}, {"reps": 3, "weight": 125.0, "rest": 300, "rpe": 9.0, "pct": "81%"}]}, {"name": "BENCH COMP", "variation": "", "sets": [{"reps": 5, "weight": 40.0, "rest": 90, "rpe": 5.0, "pct": "52%"}, {"reps": 4, "weight": 50.0, "rest": 120, "rpe": 5.0, "pct": "65%"}, {"reps": 3, "weight": 60.0, "rest": 300, "rpe": 6.5, "pct": "77%"}, {"reps": 2, "weight": 65.0, "rest": 300, "rpe": 7.0, "pct": "84%"}, {"reps": 1, "weight": 0.0, "rest": 300, "rpe": 9.0, "pct": ""}, {"reps": 3, "weight": -5.0, "rest": 300, "rpe": 8.5, "pct": ""}]}, {"name": "BSS HALTERE", "variation": "", "sets": [{"reps": 10, "weight": 10.0, "rest": 120, "rpe": 7.0, "pct": ""}, {"reps": 10, "weight": 10.0, "rest": 120, "rpe": 8.0, "pct": ""}, {"reps": 10, "weight": 10.0, "rest": 120, "rpe": 9.0, "pct": ""}]}]}]}, {"label": "Semaine du 29/06/2026", "key": "W4", "sessions": [{"session_num": 1, "sheet": "29062026", "date": "29/06/2026", "block": "12", "duration": "1h55", "focus": "SQUAT COMP · BENCH COMP", "exercises": [{"name": "SQUAT COMP", "variation": "", "sets": [{"reps": 5, "weight": 70.0, "rest": 90, "rpe": 5.0, "pct": "45%"}, {"reps": 4, "weight": 105.0, "rest": 120, "rpe": 6.0, "pct": "68%"}, {"reps": 3, "weight": 120.0, "rest": 180, "rpe": 7.0, "pct": "77%"}, {"reps": 2, "weight": 130.0, "rest": 300, "rpe": 8.0, "pct": "84%"}, {"reps": 2, "weight": 140.0, "rest": 300, "rpe": 9.0, "pct": "90%"}, {"reps": 2, "weight": 145.0, "rest": 300, "rpe": 10.0, "pct": "94%"}, {"reps": 2, "weight": 125.0, "rest": 300, "rpe": 5.0, "pct": "81%"}, {"reps": 2, "weight": 125.0, "rest": 300, "rpe": 8.5, "pct": "81%"}]}, {"name": "BENCH COMP", "variation": "Pausé / TEMPO", "sets": [{"reps": 1, "weight": 45.0, "rest": 120, "rpe": 5.0, "pct": "58%"}, {"reps": 1, "weight": 57.5, "rest": 180, "rpe": 6.0, "pct": "74%"}, {"reps": 1, "weight": 67.5, "rest": 180, "rpe": 8.0, "pct": "87%"}, {"reps": 1, "weight": 72.5, "rest": 180, "rpe": 9.0, "pct": "94%"}]}, {"name": "Leg Extension", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 8.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 9.0, "pct": ""}]}, {"name": "Leg curl assis", "variation": "Unilatéral", "sets": [{"reps": 0, "weight": 0.0, "rest": 90, "rpe": 7.0, "pct": ""}, {"reps": 0, "weight": 0.0, "rest": 90, "rpe": 10.0, "pct": "
